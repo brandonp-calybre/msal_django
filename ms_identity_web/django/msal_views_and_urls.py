@@ -3,6 +3,7 @@ try:
     from django.shortcuts import redirect
     from django.urls import reverse
     from django.views.decorators.cache import never_cache
+    from ms_identity_web.errors import AuthSecurityError
 except:
     pass
 import logging
@@ -25,9 +26,13 @@ class MsalViews:
 
     @never_cache
     def sign_in(self, request):
-        self.logger.debug(f"{self.prefix}{self.endpoints.sign_in}: request received. will redirect browser to login")
-        auth_url = self.ms_identity_web.get_auth_url(redirect_uri=request.build_absolute_uri(reverse(self.endpoints.redirect)))
-        return redirect(auth_url)
+        try:
+            self.logger.debug(f"{self.prefix}{self.endpoints.sign_in}: request received. will redirect browser to login")
+            auth_url = self.ms_identity_web.get_auth_url(redirect_uri=request.build_absolute_uri(reverse(self.endpoints.redirect)))
+            return redirect(auth_url)
+        except AuthSecurityError:
+            return redirect(reverse('index'))
+
 
     def edit_profile(self, request):
         self.logger.debug(f"{self.prefix}{self.endpoints.edit_profile}: request received. will redirect browser to edit profile")
