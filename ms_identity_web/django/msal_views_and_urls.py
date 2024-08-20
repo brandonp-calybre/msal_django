@@ -43,10 +43,13 @@ class MsalViews:
 
     
     def aad_redirect(self, request):
-        self.logger.debug(f"{self.prefix}{self.endpoints.redirect}: request received. will process params")
-        return self.ms_identity_web.process_auth_redirect(
-            redirect_uri=request.build_absolute_uri(reverse(self.endpoints.redirect)),
-            afterwards_go_to_url=reverse('index'))
+        try:
+            self.logger.debug(f"{self.prefix}{self.endpoints.redirect}: request received. will process params")
+            return self.ms_identity_web.process_auth_redirect(
+                redirect_uri=request.build_absolute_uri(reverse(self.endpoints.redirect)),
+                afterwards_go_to_url=reverse('index'))
+        except AuthSecurityError:
+            return redirect(reverse('index'))
 
     def sign_out(self, request):
         self.logger.debug(f"{self.prefix}{self.endpoints.sign_out}: signing out username: {request.identity_context_data.username}")
