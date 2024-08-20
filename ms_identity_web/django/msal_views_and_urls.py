@@ -24,7 +24,7 @@ class MsalViews:
             path(self.endpoints.post_sign_out, self.post_sign_out, name=self.endpoints.post_sign_out),
         ]
 
-    @never_cache
+    
     def sign_in(self, request):
         try:
             self.logger.debug(f"{self.prefix}{self.endpoints.sign_in}: request received. will redirect browser to login")
@@ -41,7 +41,7 @@ class MsalViews:
                 b2c_policy=self.ms_identity_web.aad_config.b2c.profile)
         return redirect(auth_url)
 
-    @never_cache
+    
     def aad_redirect(self, request):
         self.logger.debug(f"{self.prefix}{self.endpoints.redirect}: request received. will process params")
         return self.ms_identity_web.process_auth_redirect(
