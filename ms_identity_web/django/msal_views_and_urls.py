@@ -2,6 +2,7 @@ try:
     from django.urls import path
     from django.shortcuts import redirect
     from django.urls import reverse
+    from django.views.decorators.cache import never_cache
 except:
     pass
 import logging
@@ -22,6 +23,7 @@ class MsalViews:
             path(self.endpoints.post_sign_out, self.post_sign_out, name=self.endpoints.post_sign_out),
         ]
 
+    @never_cache
     def sign_in(self, request):
         self.logger.debug(f"{self.prefix}{self.endpoints.sign_in}: request received. will redirect browser to login")
         auth_url = self.ms_identity_web.get_auth_url(redirect_uri=request.build_absolute_uri(reverse(self.endpoints.redirect)))
@@ -34,27 +36,12 @@ class MsalViews:
                 b2c_policy=self.ms_identity_web.aad_config.b2c.profile)
         return redirect(auth_url)
 
+    @never_cache
     def aad_redirect(self, request):
         self.logger.debug(f"{self.prefix}{self.endpoints.redirect}: request received. will process params")
-
-        if request.method == 'GET':
-            received_state = request.GET.get('state')
-
-            stored_state = request.session.get('oauth_state')
-
-            if stored_state:
-                if received_state != stored_state:
-                    return redirect(reverse('index'))
-                
-            del request.session['oauth_state']
-
-            return self.ms_identity_web.process_auth_redirect(
+        return self.ms_identity_web.process_auth_redirect(
             redirect_uri=request.build_absolute_uri(reverse(self.endpoints.redirect)),
             afterwards_go_to_url=reverse('index'))
-
-        else:
-            return redirect(reverse('index'))
-
 
     def sign_out(self, request):
         self.logger.debug(f"{self.prefix}{self.endpoints.sign_out}: signing out username: {request.identity_context_data.username}")
